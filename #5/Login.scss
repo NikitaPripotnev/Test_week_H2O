@@ -1,0 +1,98 @@
+@import "../config";
+
+.login{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: $textMain;
+  background-image: url("../assets/image 152.png");
+  background-size: cover;
+
+  &__logo {
+    width: 70%;
+    margin: 0 auto 5rem;
+  }
+
+  &>form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 450px;
+    position: relative;
+  }
+
+  &__input{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0.85em 1.75em;
+    background: #B0D2DC;
+    opacity: 0.5;
+    box-shadow: inset 0 4px 5px 2px #5F98A7;
+    border-radius: 40px;
+    margin-bottom: 1.5em;
+
+    svg{
+      width: 16px;
+      margin-right: 15px;
+    }
+    input{
+      background-color: transparent;
+      border: none;
+      outline: none;
+      flex:1;
+      font-size: 1.2rem;
+
+      &::placeholder{
+        color: $textSecond !important;
+      }
+    }
+  }
+
+  &__button{
+    background: #FFFFFF;
+    box-shadow: 0 0 10px rgba(95, 152, 167, 0.5);
+    border-radius: 40px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 0.7em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    color: $textSecond;
+
+    &:hover{
+      background-color: $backSecond;
+    }
+  }
+
+  &__formFooter{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+    svg{
+      color: #fff;
+    }
+  }
+
+  &__error{
+    position: absolute;
+    width: 100%;
+    bottom: -2em;
+    left: 50%;
+    transform: translate(-50%, 0%);
+  }
+
+  .MuiIconButton-label{
+    width: 22px;
+    height: 22px;
+    background-color: #A8C3CF;
+    border-radius: 5px;
+  }
+
+}
+
+
