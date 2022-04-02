@@ -177,7 +177,7 @@ function* updateEvents(action) {
 			const available = daySchedule.personnel.filter(
 				personnel =>
 					personnel.status === 'WORKING' &&
-					foremans.some(f => f.id === personnel.personnelId)
+					personnel.personnelId === 'ID_MUST_BE_HERE'
 			)
 			const cleaningsAtDay = cleanings.filter(
 				cleaning =>
@@ -189,17 +189,16 @@ function* updateEvents(action) {
 						.endOf('day')
 						.isSameOrAfter(daySchedule.date)
 			)
-			// Не знаю как иначе сделать конструкцию, чтобы записывало в 1 день 2 уборки
-			let arrCheck = 0
-			if (available.length === 1 && cleaningsAtDay.length < 2) {
-				arrCheck = 1
-			}
-			return new Array(arr).fill('').map(_ => ({
-				stageGroup: 'empty',
-				type: 'empty',
+			const resultAvailable = Math.max(
+				available.length * 2 - cleaningsAtDay.length,
+				0
+			)
+			return new Array(resultAvailable).fill('').map(_ => ({
+				stageGroup: 'emptyGlass',
+				type: 'emptyGlass',
 				start: fetchDate(daySchedule.date).startOf('day').toDate(),
 				end: fetchDate(daySchedule.date).endOf('day').toDate(),
-				address: 'Свободное окно для уборки стекол',
+				address: 'Свободное остекление',
 				allDay: true,
 			}))
 		})
