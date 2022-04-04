@@ -118,4 +118,4 @@ function moneyToString(input) {
     )
 }
 
-console.log(moneyToString(1234527832))
+console.log(moneyToString(126234527832))

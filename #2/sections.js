@@ -1,169 +1,275 @@
-import {inputs} from "./inputs";
-import {rules} from "./rules";
-import {fetchFormAction} from "./formActionService";
-import {StageManager} from "./StageManager";
-import {personnelInputs} from "../inputs/personnel";
+import { inputs } from "./inputs"
+import { rules } from "./rules"
+import { fetchFormAction } from "./formActionService"
+import { StageManager } from "./StageManager"
+import { personnelInputs } from "../inputs/personnel"
+import { additionals } from "./additionals"
+import { calculations } from "./calculations"
+import { chief } from "./chief"
+import { contract } from "./contract"
+import { foremanWorkStarting } from "./foremanWorkStarting"
+import { foremanReportObject } from "./foremanReportObject"
+import { foremanReportWarehouse } from "./foremanReportWarehouse"
+import { tools } from "./tools"
+import { inspection } from "./inspection"
+import { kp_primary } from "./kp_primary"
+import { managerOrderReport } from "./managerOrderReport"
+import { managerOrderClose } from "./managerOrderClose"
+import { operator } from "./operator"
+import { primaryInfo } from "./primaryInfo"
+import { quality } from "./quality"
+import { starting } from "./starting"
+import { task } from "./task"
+import { selling } from "./selling"
 
-export const PRIMARY_INFORMATION = ({orderType, orderCreator, isPassport, cleaningType, serviceType, counterparty, additionalService, source, prepaymentType, stages, user, archived}) => {
-    let newInputs = [];
+export const PRIMARY_INFORMATION = ({
+    orderType,
+    orderCreator,
+    isPassport,
+    cleaningType,
+    serviceType,
+    counterparty,
+    additionalService,
+    source,
+    prepaymentType,
+    stages,
+    user,
+    archived
+}) => {
+    let newInputs = []
     if (rules[user.role]?.sections.primaryInformation) {
-        let disabled = false;
+        let disabled = false
         if (archived || stages.includes("ORDER_TO_DIVISION")) {
-            disabled = true;
+            disabled = true
         }
         if (orderCreator) {
-            newInputs.push([inputs.orderCreator(disabled), inputs.orderCreatedAt(disabled)]);
+            newInputs.push([
+                primaryInfo.orderCreator(disabled),
+                primaryInfo.orderCreatedAt(disabled)
+            ])
         }
-        newInputs.push([inputs.cleaningType(disabled), inputs.orderType(disabled)]);
-        newInputs.push([inputs.buildingType(disabled), inputs.buildingClass(disabled)]);
-        newInputs.push(counterparty === "Физ. лицо" ? [inputs.counterparty(disabled), inputs.sex(disabled)] : [inputs.counterparty(disabled), inputs.organization(disabled)]);
-        newInputs.push([inputs.contactInfo(disabled)]);
-        newInputs.push([inputs.isPassport(disabled)]);
+        newInputs.push([primaryInfo.cleaningType(disabled), primaryInfo.orderType(disabled)])
+        newInputs.push([primaryInfo.buildingType(disabled), primaryInfo.buildingClass(disabled)])
+        newInputs.push(
+            counterparty === "Физ. лицо"
+                ? [primaryInfo.counterparty(disabled), primaryInfo.sex(disabled)]
+                : [primaryInfo.counterparty(disabled), primaryInfo.organization(disabled)]
+        )
+        newInputs.push([primaryInfo.contactInfo(disabled)])
+        newInputs.push([primaryInfo.isPassport(disabled)])
         if (isPassport) {
-            newInputs.push([inputs.passportFullname(disabled), inputs.passportPhone(disabled), inputs.passportBirthday(disabled)]);
-            newInputs.push([inputs.passportSeries(disabled), inputs.passportNumber(disabled), inputs.subdivisionCode(disabled), inputs.issuedDate(disabled)]);
-            newInputs.push([inputs.issuedBy(disabled)]);
-            newInputs.push([inputs.residencePlace(disabled)]);
+            newInputs.push([
+                primaryInfo.passportFullname(disabled),
+                primaryInfo.passportPhone(disabled),
+                primaryInfo.passportBirthday(disabled)
+            ])
+            newInputs.push([
+                primaryInfo.passportSeries(disabled),
+                primaryInfo.passportNumber(disabled),
+                primaryInfo.subdivisionCode(disabled),
+                primaryInfo.issuedDate(disabled)
+            ])
+            newInputs.push([primaryInfo.issuedBy(disabled)])
+            newInputs.push([primaryInfo.residencePlace(disabled)])
         }
-        newInputs.push([inputs.address(disabled)]);
+        newInputs.push([primaryInfo.address(disabled)])
         if (serviceType !== "Остекление") {
-            newInputs.push([inputs.objectArea(disabled), inputs.bathroom(disabled)]);
+            newInputs.push([primaryInfo.objectArea(disabled), primaryInfo.bathroom(disabled)])
         }
-        newInputs.push([inputs.serviceType(disabled), inputs.additionalService(disabled)]);
+        newInputs.push([primaryInfo.serviceType(disabled), primaryInfo.additionalService(disabled)])
         if (additionalService && additionalService.includes("Балкон")) {
-            newInputs.push([inputs.balconies(disabled)]);
+            newInputs.push([primaryInfo.balconies(disabled)])
         }
-        newInputs.push([inputs.windows(disabled)]);
-        newInputs.push([inputs.comment(disabled)]);
-        newInputs.push([inputs.services(disabled, serviceType)]);
-        newInputs.push([inputs.cleaningDuration(disabled), inputs.cost(disabled)]);
-        const prepaymentRow = [inputs.discount(disabled), inputs.prepaymentType(disabled)];
-        if(prepaymentType==="На объекте"||prepaymentType==="Внесена"){
-            prepaymentRow.push(inputs.prepaymentSelect(disabled))
+        newInputs.push([primaryInfo.windows(disabled)])
+        newInputs.push([primaryInfo.comment(disabled)])
+        newInputs.push([primaryInfo.services(disabled, serviceType)])
+        newInputs.push([primaryInfo.cleaningDuration(disabled), primaryInfo.cost(disabled)])
+        const prepaymentRow = [primaryInfo.discount(disabled), primaryInfo.prepaymentType(disabled)]
+        if (prepaymentType === "На объекте" || prepaymentType === "Внесена") {
+            prepaymentRow.push(primaryInfo.prepaymentSelect(disabled))
         }
-        if(prepaymentType==="Бронирование даты"||prepaymentType==="Выезд на осмотр"){
-            prepaymentRow.push(inputs.prepaymentText(disabled))
+        if (prepaymentType === "Бронирование даты" || prepaymentType === "Выезд на осмотр") {
+            prepaymentRow.push(primaryInfo.prepaymentText(disabled))
         }
-        newInputs.push([...prepaymentRow]);
-        newInputs.push((source === "от Партнеров" || source === "Рекомендации" || source === "Абонемент" || source === "Рамочный договор" || source === "Объект из ППО") ?
-            [inputs.attractionSource(disabled), inputs.sourceTypeText(disabled)] : [inputs.attractionSource(disabled), inputs.sourceTypeSelect(disabled)]);
-        newInputs.push([inputs.crmLink(disabled)]);
-        if (orderType === 'Уборка' && cleaningType === 'Разовая уборка') {
-            newInputs.push([inputs.photosObject(disabled)]);
+        newInputs.push([...prepaymentRow])
+        newInputs.push(
+            source === "от Партнеров" ||
+                source === "Рекомендации" ||
+                source === "Абонемент" ||
+                source === "Рамочный договор" ||
+                source === "Объект из ППО"
+                ? [primaryInfo.attractionSource(disabled), primaryInfo.sourceTypeText(disabled)]
+                : [primaryInfo.attractionSource(disabled), primaryInfo.sourceTypeSelect(disabled)]
+        )
+        newInputs.push([primaryInfo.crmLink(disabled)])
+        if (orderType === "Уборка" && cleaningType === "Разовая уборка") {
+            newInputs.push([primaryInfo.photosObject(disabled)])
         }
     }
 
-
     return {
-        title: 'Первичная информация',
+        title: "Первичная информация",
         name: "primaryInformation",
         inputs: [...newInputs],
         active: true
     }
-};
+}
 
-export const SELLING = ({responsibleManager, stages, currentStage, user, archived, responsibleUsers}) => {
-    let newInputs = [];
+export const SELLING = ({
+    responsibleManager,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUsers
+}) => {
+    let newInputs = []
 
     if (rules[user.role]?.sections.selling) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        let disabled = archived || stages.includes("ORDER_TO_DIVISION");
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        let disabled = archived || stages.includes("ORDER_TO_DIVISION")
 
         if (responsibleManager) {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true)]);
+            newInputs.push([selling.division(true), selling.responsibleManager(true)])
         } else {
-            newInputs.push([inputs.division(disabled)]);
+            newInputs.push([selling.division(disabled)])
         }
 
-        newInputs.push([inputs.cleaningDate(disabled), inputs.soldAt(disabled)]);
+        newInputs.push([selling.cleaningDate(disabled), selling.soldAt(disabled)])
 
-        if (stages.includes('TAKE_ORDER')) {
-            newInputs.push([inputs.contract(), inputs.act()]);
+        if (stages.includes("TAKE_ORDER")) {
+            newInputs.push([selling.contract(), selling.act()])
         }
-        if(availableAction){
-            const action = fetchFormAction({archived, section: "SELLING", user, currentStage, responsibleUsers});
+        if (availableAction) {
+            const action = fetchFormAction({
+                archived,
+                section: "SELLING",
+                user,
+                currentStage,
+                responsibleUsers
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
     }
     return {
-        title: 'Продажа',
+        title: "Продажа",
         name: "selling",
         inputs: [...newInputs],
-        active:true
+        active: true
     }
-
 }
 
-
-export const STARTING = ({stages, currentStage, user, archived, responsibleUsers}) => {
-    let newInputs = [];
+export const STARTING = ({ stages, currentStage, user, archived, responsibleUsers }) => {
+    let newInputs = []
     if (rules[user?.role]?.sections.starting) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
 
-        if(user?.role==="ORDER_MANAGER"||user?.role==="CHIEF"){
+        if (user?.role === "ORDER_MANAGER" || user?.role === "CHIEF") {
             if (stages.includes("TAKE_ORDER") && currentStage !== "CHANGE_REQUEST") {
-                newInputs.push([inputs.cleaningApprovalInfo(stages.includes("APPROVE_CLEANING"), false)]);
+                newInputs.push([
+                    startingstarting.cleaningApprovalInfo(
+                        stages.includes("APPROVE_CLEANING"),
+                        false
+                    )
+                ])
             }
             if (currentStage === "APPROVE_CLEANING") {
-                newInputs.push([inputs.nzTask()]);
+                newInputs.push([starting.nzTask()])
             }
             if (stages.includes("FILL_NZ_WITH_TASK")) {
-                newInputs.push([inputs.nzFront()]);
+                newInputs.push([starting.nzFront()])
             }
         }
 
         if (availableAction) {
-            const action = fetchFormAction({archived, section: "STARTING", user, currentStage, responsibleUsers});
+            const action = fetchFormAction({
+                archived,
+                section: "STARTING",
+                user,
+                currentStage,
+                responsibleUsers
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
     }
     return {
-        title: 'Запуск уборки',
+        title: "Запуск уборки",
         name: "starting",
         inputs: newInputs,
         active: true
     }
 }
 
+export const FOREMAN_WORK_STARTING = ({
+    reportDate,
+    additionalServices,
+    additionalServicesPhotos,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUserId
+}) => {
+    const newInputs = []
 
-export const FOREMAN_WORK_STARTING = ({reportDate, additionalServices, additionalServicesPhotos, stages, currentStage, user, archived, responsibleUserId}) => {
-    const newInputs = [];
-
-    if ((rules[user?.role]?.sections.foremanWorkStarting && (user.role !== "FOREMAN" || responsibleUserId === user.id))) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const disabled = stages.includes("CLEANING_STARTED");
-        const temporaryDisable = currentStage==="APPROVE_NZ"&&user.role==="ORDER_MANAGER";
+    if (
+        rules[user?.role]?.sections.foremanWorkStarting &&
+        (user.role !== "FOREMAN" || responsibleUserId === user.id)
+    ) {
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const disabled = stages.includes("CLEANING_STARTED")
+        const temporaryDisable = currentStage === "APPROVE_NZ" && user.role === "ORDER_MANAGER"
 
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.foreman(true), inputs.reportDate(true)])
+            newInputs.push([
+                foremanWorkStarting.division(true),
+                foremanWorkStarting.foreman(true),
+                foremanWorkStarting.reportDate(true)
+            ])
         } else {
-            newInputs.push([inputs.division(true), inputs.foreman(true)])
+            newInputs.push([foremanWorkStarting.division(true), foremanWorkStarting.foreman(true)])
         }
 
-        newInputs.push([inputs.cleaningTask(true)]);
+        newInputs.push([foremanWorkStarting.cleaningTask(true)])(
+            user.role === "CHIEF" || user.role === "FOREMAN"
+        ) &&
+            newInputs.push([
+                foremanWorkStarting.clientConfirmationInfo(
+                    stages.includes("CLIENT_CONFIRMATION"),
+                    false
+                )
+            ])
 
-        (user.role === "CHIEF"||user.role === "FOREMAN") && newInputs.push([inputs.clientConfirmationInfo(stages.includes("CLIENT_CONFIRMATION"), false)]);
-
-        const mainServicesApproved = stages.includes("ADD_SERVICES_RESPONSE");
+        const mainServicesApproved = stages.includes("ADD_SERVICES_RESPONSE")
         if (stages.includes("CLIENT_CONFIRMATION") && (availableAction || mainServicesApproved)) {
-            newInputs.push([inputs.actualServices(mainServicesApproved)])
-            newInputs.push([inputs.contractPhoto(mainServicesApproved)]);
+            newInputs.push([foremanWorkStarting.actualServices(mainServicesApproved)])
+            newInputs.push([foremanWorkStarting.contractPhoto(mainServicesApproved)])
         }
 
-        additionalServicesPhotos && newInputs.push([inputs.additionalServicesPhotos(true)]);
+        additionalServicesPhotos &&
+            newInputs.push([foremanWorkStarting.additionalServicesPhotos(true)])
 
-        const addServicesApproved = stages.includes("ADD_SERVICES_TO_CONFIRMATION");
-        if (additionalServices&&mainServicesApproved && (availableAction || addServicesApproved)) { //Проверять есть ли additionalService
-            newInputs.push([inputs.additionalServices(disabled||!availableAction, currentStage==="ADD_SERVICES_RESPONSE")])
+        const addServicesApproved = stages.includes("ADD_SERVICES_TO_CONFIRMATION")
+        if (
+            additionalServices &&
+            mainServicesApproved &&
+            (availableAction || addServicesApproved)
+        ) {
+            //Проверять есть ли additionalService
+            newInputs.push([
+                foremanWorkStarting.additionalServices(
+                    disabled || !availableAction,
+                    currentStage === "ADD_SERVICES_RESPONSE"
+                )
+            ])
         }
-        if (additionalServices&&addServicesApproved && (availableAction || disabled)) {
-            newInputs.push([inputs.addContractPhoto(disabled)])
+        if (additionalServices && addServicesApproved && (availableAction || disabled)) {
+            newInputs.push([foremanWorkStarting.addContractPhoto(disabled)])
         }
-
 
         if (availableAction) {
             const action = fetchFormAction({
@@ -172,56 +278,75 @@ export const FOREMAN_WORK_STARTING = ({reportDate, additionalServices, additiona
                 user,
                 currentStage,
                 responsibleUserId
-            });
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
-
     }
     return {
-        title: 'Сверка с клиентом выполняемых услуг',
+        title: "Сверка с клиентом выполняемых услуг",
         name: "foremanReport",
         inputs: [...newInputs]
     }
 }
 
-export const FOREMAN_REPORT_OBJECT = ({reportDate, stages, currentStage, user, archived, responsibleUserId, actualCostCard}) => {
-    const newInputs = [];
+export const FOREMAN_REPORT_OBJECT = ({
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUserId,
+    actualCostCard
+}) => {
+    const newInputs = []
 
-    if ((rules[user?.role]?.sections.foremanReportObject && (user.role !== "FOREMAN" || responsibleUserId === user.id))) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const temporaryDisable = currentStage==="APPROVE_NZ_BACK"&&user.role==="ORDER_MANAGER";
+    if (
+        rules[user?.role]?.sections.foremanReportObject &&
+        (user.role !== "FOREMAN" || responsibleUserId === user.id)
+    ) {
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const temporaryDisable = currentStage === "APPROVE_NZ_BACK" && user.role === "ORDER_MANAGER"
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.foreman(true), inputs.reportDate(true)])
+            newInputs.push([
+                foremanReportObject.division(true),
+                foremanReportObject.foreman(true),
+                foremanReportObject.reportDate(true)
+            ])
         } else {
-            newInputs.push([inputs.division(true), inputs.foreman(true)])
+            newInputs.push([foremanReportObject.division(true), foremanReportObject.foreman(true)])
         }
 
-        newInputs.push([inputs.cleaningDate(true)])
+        newInputs.push([foremanReportObject.cleaningDate(true)])
 
-        const workStarted = stages.includes("WORK_STARTING");
+        const workStarted = stages.includes("WORK_STARTING")
 
         if (stages.includes("CLEANING_STARTED") && (availableAction || workStarted)) {
-            newInputs.push([inputs.workBeginning(workStarted)]);
+            newInputs.push([foremanReportObject.workBeginning(workStarted)])
         }
 
-        const cleaningEnded = stages.includes("CLEANING_ENDED");
-        if (workStarted){
-            newInputs.push([inputs.foremanCheckList(cleaningEnded||(user.role!=="FOREMAN"&&user.role!=="CHIEF"))])
+        const cleaningEnded = stages.includes("CLEANING_ENDED")
+        if (workStarted) {
+            newInputs.push([
+                foremanReportObject.foremanCheckList(
+                    cleaningEnded || (user.role !== "FOREMAN" && user.role !== "CHIEF")
+                )
+            ])
         }
         if (workStarted && (availableAction || cleaningEnded)) {
-            newInputs.push([inputs.workProcess(cleaningEnded)]);
+            newInputs.push([foremanReportObject.workProcess(cleaningEnded)])
         }
 
-
-        const workEnded = stages.includes("WORK_ENDING");
+        const workEnded = stages.includes("WORK_ENDING")
         if (cleaningEnded && (availableAction || workEnded)) {
-            newInputs.push([inputs.actualCostCash(workEnded&&!temporaryDisable), inputs.actualCostCard(workEnded&&!temporaryDisable)]);
-            actualCostCard>0&&newInputs.push([inputs.paymentCheck()]);
-            newInputs.push([inputs.workEnding(workEnded)])
+            newInputs.push([
+                foremanReportObject.actualCostCash(workEnded && !temporaryDisable),
+                foremanReportObject.actualCostCard(workEnded && !temporaryDisable)
+            ])
+            actualCostCard > 0 && newInputs.push([foremanReportObject.paymentCheck()])
+            newInputs.push([foremanReportObject.workEnding(workEnded)])
         }
-
 
         if (availableAction) {
             const action = fetchFormAction({
@@ -230,40 +355,65 @@ export const FOREMAN_REPORT_OBJECT = ({reportDate, stages, currentStage, user, a
                 user,
                 currentStage,
                 responsibleUserId
-            });
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
-
     }
     return {
-        title: 'Отчет бригадира (объект)',
+        title: "Отчет бригадира (объект)",
         name: "foremanReport",
         inputs: [...newInputs]
     }
 }
 
-export const FOREMAN_REPORT_WAREHOUSE = ({reportDate, stages, currentStage, user, archived, responsibleUserId}) => {
-    const newInputs = [];
+export const FOREMAN_REPORT_WAREHOUSE = ({
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUserId
+}) => {
+    const newInputs = []
 
-    if ((rules[user?.role]?.sections.foremanReportWarehouse && (user.role !== "FOREMAN" || responsibleUserId === user.id))) {
-        const disable = stages.includes("FOREMAN_REPORT");
-        const temporaryDisable = currentStage==="APPROVE_NZ_BACK"&&user.role==="ORDER_MANAGER";
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
+    if (
+        rules[user?.role]?.sections.foremanReportWarehouse &&
+        (user.role !== "FOREMAN" || responsibleUserId === user.id)
+    ) {
+        const disable = stages.includes("FOREMAN_REPORT")
+        const temporaryDisable = currentStage === "APPROVE_NZ_BACK" && user.role === "ORDER_MANAGER"
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
 
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.foreman(true), inputs.reportDate(true)])
+            newInputs.push([
+                foremanReportWarehouse.division(true),
+                foremanReportWarehouse.foreman(true),
+                foremanReportWarehouse.reportDate(true)
+            ])
         } else {
-            newInputs.push([inputs.division(true), inputs.foreman(true)])
+            newInputs.push([
+                foremanReportWarehouse.division(true),
+                foremanReportWarehouse.foreman(true)
+            ])
         }
 
         if (stages.includes("ON_WAREHOUSE") && (availableAction || disable)) {
-            newInputs.push([inputs.actualTitle()]);
-            newInputs.push([inputs.actualObjectArea(disable&&!temporaryDisable), inputs.actualDurationCleaningTime(true), inputs.actualCleanerNumber(true), inputs.actualEmployeesSalary(true)])
-            newInputs.push([inputs.actualExpansesTaxiThere(disable&&!temporaryDisable), inputs.actualExpansesTaxiBack(disable&&!temporaryDisable), inputs.actualExpansesPetrol(disable&&!temporaryDisable)]);
-            newInputs.push([inputs.actualTeam(disable&&!temporaryDisable)]);
-            newInputs.push([inputs.foremanComment(disable&&!temporaryDisable)]);
+            newInputs.push([foremanReportWarehouse.actualTitle()])
+            newInputs.push([
+                foremanReportWarehouse.actualObjectArea(disable && !temporaryDisable),
+                foremanReportWarehouse.actualDurationCleaningTime(true),
+                foremanReportWarehouse.actualCleanerNumber(true),
+                foremanReportWarehouse.actualEmployeesSalary(true)
+            ])
+            newInputs.push([
+                foremanReportWarehouse.actualExpansesTaxiThere(disable && !temporaryDisable),
+                foremanReportWarehouse.actualExpansesTaxiBack(disable && !temporaryDisable),
+                foremanReportWarehouse.actualExpansesPetrol(disable && !temporaryDisable)
+            ])
+            newInputs.push([foremanReportWarehouse.actualTeam(disable && !temporaryDisable)])
+            newInputs.push([foremanReportWarehouse.foremanComment(disable && !temporaryDisable)])
         }
         if (availableAction) {
             const action = fetchFormAction({
@@ -272,27 +422,35 @@ export const FOREMAN_REPORT_WAREHOUSE = ({reportDate, stages, currentStage, user
                 user,
                 currentStage,
                 responsibleUserId
-            });
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
-
-
     }
     return {
-        title: 'Отчет бригадира (склад)',
+        title: "Отчет бригадира (склад)",
         name: "foremanReport",
         inputs: [...newInputs]
     }
 }
 
-export const TOOLS_REPORT = ({reportDate, stages, currentStage, user, archived, responsibleUserId}) => {
-    const newInputs = [];
-    if ((rules[user?.role]?.sections.toolsReport && (user.role !== "FOREMAN" || responsibleUserId === user.id))) {
-        const disabled = stages.includes("TOOLS_REPORT");
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const temporaryDisable = currentStage==="APPROVE_NZ_BACK"&&user.role==="ORDER_MANAGER";
+export const TOOLS_REPORT = ({
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUserId
+}) => {
+    const newInputs = []
+    if (
+        rules[user?.role]?.sections.toolsReport &&
+        (user.role !== "FOREMAN" || responsibleUserId === user.id)
+    ) {
+        const disabled = stages.includes("TOOLS_REPORT")
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const temporaryDisable = currentStage === "APPROVE_NZ_BACK" && user.role === "ORDER_MANAGER"
 
         // if (reportDate) {
         //     newInputs.push([inputs.division(true), inputs.toolsManager(true), inputs.reportDate(true)])
@@ -301,211 +459,297 @@ export const TOOLS_REPORT = ({reportDate, stages, currentStage, user, archived, 
         // }
 
         if (availableAction || disabled) {
-            newInputs.push([inputs.actualConsumables(true), inputs.documentsReturn(disabled&&!temporaryDisable)]);
-            newInputs.push([inputs.actualTools(disabled && !temporaryDisable)])
-            newInputs.push([inputs.toolsComment(disabled && !temporaryDisable)]);
+            newInputs.push([
+                tools.actualConsumables(true),
+                tools.documentsReturn(disabled && !temporaryDisable)
+            ])
+            newInputs.push([tools.actualTools(disabled && !temporaryDisable)])
+            newInputs.push([tools.toolsComment(disabled && !temporaryDisable)])
         }
 
         if (stages.includes("TOOLS_REPORT")) {
-            newInputs.push([inputs.nzBack(true)])
+            newInputs.push([tools.nzBack(true)])
         }
 
         if (availableAction) {
-            const action = fetchFormAction({archived, section: "TOOLS_REPORT", user, currentStage, responsibleUserId});
+            const action = fetchFormAction({
+                archived,
+                section: "TOOLS_REPORT",
+                user,
+                currentStage,
+                responsibleUserId
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
-
     }
     return {
-        title: 'Возврат инвентаря',
+        title: "Возврат инвентаря",
         name: "toolsReport",
         inputs: [...newInputs]
     }
 }
 
-export const ORDER_MANAGER_REPORT = ({reportDate, stages, currentStage, user, archived}) => {
-    const newInputs = [];
+export const ORDER_MANAGER_REPORT = ({ reportDate, stages, currentStage, user, archived }) => {
+    const newInputs = []
 
     if (rules[user?.role]?.sections.orderManagerReport) {
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true), inputs.reportDate(true)])
+            newInputs.push([
+                managerOrderReport.division(true),
+                managerOrderReport.responsibleManager(true),
+                managerOrderReport.reportDate(true)
+            ])
         } else {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true)])
+            newInputs.push([
+                managerOrderReport.division(true),
+                managerOrderReport.responsibleManager(true)
+            ])
         }
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const disabled = stages.includes("ORDER_MANAGER_REPORT");
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const disabled = stages.includes("ORDER_MANAGER_REPORT")
 
         if (availableAction || disabled) {
-            newInputs.push([inputs.orderManagerComment(disabled)]);
-            newInputs.push([inputs.nzFrontPhoto(), inputs.nzBackPhoto()]);
+            newInputs.push([managerOrderReport.orderManagerComment(disabled)])
+            newInputs.push([managerOrderReport.nzFrontPhoto(), managerOrderReport.nzBackPhoto()])
         }
 
         if (availableAction) {
-            const action = fetchFormAction({archived, section: "ORDER_MANAGER_REPORT", user, currentStage});
+            const action = fetchFormAction({
+                archived,
+                section: "ORDER_MANAGER_REPORT",
+                user,
+                currentStage
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
     }
     return {
-        title: 'Проверка менеджера',
+        title: "Проверка менеджера",
         name: "orderManagerReport",
         inputs: [...newInputs]
     }
 }
 
-export const ORDER_MANAGER_ORDER_CLOSING = ({lastSection, sectionNumber, reportDate, stages, currentStage, user, archived}) => {
-    const newInputs = [];
+export const ORDER_MANAGER_ORDER_CLOSING = ({
+    lastSection,
+    sectionNumber,
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived
+}) => {
+    const newInputs = []
 
     if (rules[user?.role]?.sections.orderManagerOrderClosing) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const disabled = !lastSection||stages.includes("TO_CHIEF_REPORT");
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const disabled = !lastSection || stages.includes("TO_CHIEF_REPORT")
 
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true), inputs.reportDate(true)])
+            newInputs.push([
+                managerOrderClose.division(true),
+                managerOrderClose.responsibleManager(true),
+                managerOrderClose.reportDate(true)
+            ])
         }
         if (availableAction || !lastSection) {
-            newInputs.push([inputs.additionalExpanses(disabled)]);
-            newInputs.push([inputs.orderManagerComment(disabled)]);
-            newInputs.push([inputs.mistakesFiles(disabled)]);
+            newInputs.push([managerOrderClose.additionalExpanses(disabled)])
+            newInputs.push([managerOrderClose.orderManagerComment(disabled)])
+            newInputs.push([managerOrderClose.mistakesFiles(disabled)])
         }
 
-        if (availableAction&&lastSection) {
-            const action = fetchFormAction({archived, section: "ORDER_MANAGER_ORDER_CLOSING", user, currentStage});
+        if (availableAction && lastSection) {
+            const action = fetchFormAction({
+                archived,
+                section: "ORDER_MANAGER_ORDER_CLOSING",
+                user,
+                currentStage
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
     }
     return {
-        title: 'Исправление недочетов',
-        name: "orderClosing."+sectionNumber,
+        title: "Исправление недочетов",
+        name: "orderClosing." + sectionNumber,
         inputs: [...newInputs]
     }
 }
 
-export const OPERATOR_ORDER_CLOSING = ({lastSection, sectionNumber, reportDate, stages, currentStage, user, archived}) => {
-    const newInputs = [];
+export const OPERATOR_ORDER_CLOSING = ({
+    lastSection,
+    sectionNumber,
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived
+}) => {
+    const newInputs = []
 
     if (rules[user?.role]?.sections.operatorOrderClosing) {
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const disabled = !lastSection||stages.includes("TO_CHIEF_REPORT");
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const disabled = !lastSection || stages.includes("TO_CHIEF_REPORT")
 
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true), inputs.reportDate(true)])
+            newInputs.push([
+                operator.division(true),
+                operator.responsibleManager(true),
+                operator.reportDate(true)
+            ])
         }
         if (availableAction || !lastSection) {
-            newInputs.push([inputs.conflictResolutionInfo(disabled, false)]);
+            newInputs.push([operator.conflictResolutionInfo(disabled, false)])
         }
 
-        if (availableAction&&lastSection) {
-            const action = fetchFormAction({archived, section: "OPERATOR_ORDER_CLOSING", user, currentStage});
+        if (availableAction && lastSection) {
+            const action = fetchFormAction({
+                archived,
+                section: "OPERATOR_ORDER_CLOSING",
+                user,
+                currentStage
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
     }
     return {
-        title: 'Улаживание конфликта',
-        name: "orderClosing."+sectionNumber,
+        title: "Улаживание конфликта",
+        name: "orderClosing." + sectionNumber,
         inputs: [...newInputs]
     }
 }
 
-
-export const QUALITY_CONTROL = ({lastSection, sectionNumber, reportDate, stages, currentStage, user, archived, responsibleUserId}) => {
-    const newInputs = [];
+export const QUALITY_CONTROL = ({
+    lastSection,
+    sectionNumber,
+    reportDate,
+    stages,
+    currentStage,
+    user,
+    archived,
+    responsibleUserId
+}) => {
+    const newInputs = []
     //ТУТ логика available action теряется, нужно будет переписать
-    if (rules[user?.role]?.sections.qualityControl&& (user.role !== "FOREMAN" || responsibleUserId === user.id)) {
-
-        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role);
-        const disabled = !lastSection||stages.includes("TO_CHIEF_DECISION");
+    if (
+        rules[user?.role]?.sections.qualityControl &&
+        (user.role !== "FOREMAN" || responsibleUserId === user.id)
+    ) {
+        const availableAction = StageManager.checkAvailableStageByRole(currentStage, user.role)
+        const disabled = !lastSection || stages.includes("TO_CHIEF_DECISION")
 
         if (reportDate) {
-            newInputs.push([inputs.division(true), inputs.responsibleManager(true), inputs.reportDate(true)])
+            newInputs.push([
+                quality.division(true),
+                quality.responsibleManager(true),
+                quality.reportDate(true)
+            ])
         }
-        if (user.role==="OPERATOR"||user.role==="CHIEF"||((user.role==="ORDER_MANAGER"||user.role==="FOREMAN")&&!lastSection)||stages.includes("TO_CHIEF_DECISION")) {
-            newInputs.push([inputs.qualityRating(disabled), inputs.serviceRating(disabled), inputs.discountNextCleaning(disabled)]);
-            newInputs.push([inputs.clientComment(disabled)]);
-            newInputs.push([inputs.qualityControlComment(disabled)]);
-            newInputs.push([inputs.qualityControlFiles(disabled)]);
+        if (
+            user.role === "OPERATOR" ||
+            user.role === "CHIEF" ||
+            ((user.role === "ORDER_MANAGER" || user.role === "FOREMAN") && !lastSection) ||
+            stages.includes("TO_CHIEF_DECISION")
+        ) {
+            newInputs.push([
+                quality.qualityRating(disabled),
+                quality.serviceRating(disabled),
+                quality.discountNextCleaning(disabled)
+            ])
+            newInputs.push([quality.clientComment(disabled)])
+            newInputs.push([quality.qualityControlComment(disabled)])
+            newInputs.push([quality.qualityControlFiles(disabled)])
         }
 
-        if ((user.role==="OPERATOR"||user.role==="CHIEF")&&lastSection) {
-            const action = fetchFormAction({archived, section: "QUALITY_CONTROL", user, currentStage});
+        if ((user.role === "OPERATOR" || user.role === "CHIEF") && lastSection) {
+            const action = fetchFormAction({
+                archived,
+                section: "QUALITY_CONTROL",
+                user,
+                currentStage
+            })
             if (action) {
-                newInputs.push([action]);
+                newInputs.push([action])
             }
         }
 
         return {
-            title: 'Оценка качества',
-            name: 'orderClosing.'+sectionNumber,
+            title: "Оценка качества",
+            name: "orderClosing." + sectionNumber,
             inputs: newInputs
         }
     }
     return {
-        title: 'Оценка качества',
-        name: "orderClosing."+sectionNumber,
+        title: "Оценка качества",
+        name: "orderClosing." + sectionNumber,
         inputs: []
     }
+}
 
-};
-
-export const CHIEF_REPORT = ({reportDate, stages, currentStage, user, archived}) => {
-    let newInputs = [];
+export const CHIEF_REPORT = ({ reportDate, stages, currentStage, user, archived }) => {
+    let newInputs = []
     if (rules[user?.role]?.sections.chiefReport) {
         let disabled = stages.includes("CHIEF_REPORT")
         if (stages.includes("ORDER_CLOSED")) {
-            newInputs.push([inputs.chiefExpansesReport(disabled)]);
+            newInputs.push([chief.chiefExpansesReport(disabled)])
         }
 
-        const action = fetchFormAction({archived, section: "CHIEF_REPORT", user, currentStage});
+        const action = fetchFormAction({ archived, section: "CHIEF_REPORT", user, currentStage })
         if (action) {
-            newInputs.push([action]);
+            newInputs.push([action])
         }
     }
     return {
-        title: 'Отчет руководителя',
-        name: 'chiefReport',
+        title: "Отчет руководителя",
+        name: "chiefReport",
         inputs: [...newInputs]
     }
-};
-
-
-export const ORDER_CLOSING = ({currentStage, user, archived}) => {
+}
+//в инпуте не нашел orderClosingAction
+export const ORDER_CLOSING = ({ currentStage, user, archived }) => {
     if (rules[user?.role]?.sections.orderClosing) {
         return {
-            title: 'Закрытие заявки',
-            name: 'orderClosing',
+            title: "Закрытие заявки",
+            name: "orderClosing",
             inputs: [
-                StageManager.checkAvailableStageByRole(currentStage, user.role) && !archived ? [inputs.orderClosingAction()] : []
+                StageManager.checkAvailableStageByRole(currentStage, user.role) && !archived
+                    ? [inputs.orderClosingAction()]
+                    : []
             ]
         }
     }
     return {
-        title: 'Закрытие заявки',
-        name: 'orderClosing',
+        title: "Закрытие заявки",
+        name: "orderClosing",
         inputs: []
     }
-};
+}
 
-export const INSPECTION = ({kpo, stages, currentStage, user, archived}) => {
-    if (user.role === 'OPERATOR' || user.role === 'CHIEF' || user.role === 'ORDER_MANAGER') {
-        let newInputs = [];
+export const INSPECTION = ({ kpo, stages, currentStage, user, archived }) => {
+    if (user.role === "OPERATOR" || user.role === "CHIEF" || user.role === "ORDER_MANAGER") {
+        let newInputs = []
         if (stages.includes("TAKE_ORDER")) {
-            newInputs.push([inputs.division(), inputs.responsibleManager(), inputs.inspectionDate()]);
+            newInputs.push([
+                inspection.division(),
+                inspection.responsibleManager(),
+                inspection.inspectionDate()
+            ])
         } else {
-            newInputs.push([inputs.division()]);
+            newInputs.push([inspection.division()])
         }
         if (stages.includes("SELECT_INSPECTION_DATE")) {
-            newInputs.push([inputs.inspectionComment()]);
+            newInputs.push([inspection.inspectionComment()])
             if (kpo) {
-                newInputs.push([inputs.kpo(), inputs.smeta()]);
+                newInputs.push([inspection.kpo(), inspection.smeta()])
             } else {
-                newInputs.push([inputs.kpo()]);
+                newInputs.push([inspection.kpo()])
             }
         }
         if (!archived && StageManager.checkAvailableStageByRole(currentStage, user.role)) {
@@ -513,166 +757,201 @@ export const INSPECTION = ({kpo, stages, currentStage, user, archived}) => {
                 case undefined:
                 case null:
                 case "ORDER_CREATION":
-                    newInputs.push([inputs.orderToDivisionAction()]);
-                    break;
+                    newInputs.push([inspection.orderToDivisionAction()])
+                    break
                 case "ORDER_TO_DIVISION":
-                    newInputs.push([inputs.takeOrderAction()]);
-                    break;
+                    newInputs.push([inspection.takeOrderAction()])
+                    break
                 case "TAKE_ORDER":
-                    newInputs.push([inputs.selectInspectionDateAction()]);
-                    break;
+                    newInputs.push([inspection.selectInspectionDateAction()])
+                    break
                 case "SELECT_INSPECTION_DATE":
-                    newInputs.push([inputs.toSellingAction()]);
-                    break;
+                    newInputs.push([inspection.toSellingAction()])
+                    break
                 default:
-                    break;
+                    break
             }
         }
 
         return {
-            title: 'Осмотр/расчет',
-            name: 'inspectionAndAccounting',
-            inputs:
-                [...newInputs]
+            title: "Осмотр/расчет",
+            name: "inspectionAndAccounting",
+            inputs: [...newInputs]
         }
     }
 
-
     return {
-        title: 'Осмотр/расчет',
+        title: "Осмотр/расчет",
         name: "inspectionAndAccounting",
         inputs: []
     }
-};
-
-
+}
 
 //KPO
 //*********************************************
 export const CALCULATION_COMMERCIAL_OBJECTS = (createdAt) => ({
-    title: 'Расчет коммерческих объектов',
-    name: 'calculationCommercialObjects',
+    title: "Расчет коммерческих объектов",
+    name: "calculationCommercialObjects",
     inputs: [
-        createdAt ? [inputs.responsibleManager(true), inputs.createdAt(true)] : [inputs.responsibleManager(true)],
-        [inputs.buildingType(), inputs.serviceType()],
-        [inputs.address()],
-        [inputs.permitRegime()],
-        [inputs.personnelRequirements()],
-        [inputs.cleaningSchedule(), inputs.targetDate()],
-        [inputs.paymentType(), inputs.tender(), inputs.technicalTask(), inputs.testSuitcase()],
-        [inputs.contactPerson()],
-        [inputs.comment()]
+        createdAt
+            ? [calculations.responsibleManager(true), calculations.createdAt(true)]
+            : [calculations.responsibleManager(true)],
+        [calculations.buildingType(), calculations.serviceType()],
+        [calculations.address()],
+        [calculations.permitRegime()],
+        [calculations.personnelRequirements()],
+        [calculations.cleaningSchedule(), calculations.targetDate()],
+        [
+            calculations.paymentType(),
+            calculations.tender(),
+            calculations.technicalTask(),
+            calculations.testSuitcase()
+        ],
+        [calculations.contactPerson()],
+        [calculations.comment()]
     ]
-});
+})
 
 export const CALCULATION_PARAMETERS = {
-    title: 'Параметры для расчета',
-    name: 'calculationParameters',
-    inputs: [
-        [inputs.objectArea(), inputs.ceilingHeight(), inputs.bathroom()],
-        [inputs.flooring()],
-        [inputs.walls()],
-        [inputs.stairs()],
-        [inputs.furniture()],
-        [inputs.pollutionDegree()],
+    title: "Параметры для расчета",
+    name: "calculationParameters",
+    calculations: [
+        [calculations.objectArea(), calculations.ceilingHeight(), calculations.bathroom()],
+        [calculations.flooring()],
+        [calculations.walls()],
+        [calculations.stairs()],
+        [calculations.furniture()],
+        [calculations.pollutionDegree()]
     ]
-};
+}
 export const ADDITIONAL_TYPES_WORK = {
-    title: 'Дополнительные виды работ',
-    name: 'additionalTypesWork',
+    title: "Дополнительные виды работ",
+    name: "additionalTypesWork",
     inputs: [
-        [inputs.glazingWashing()],
-        [inputs.industrialAlpinism()],
-        [inputs.rotaryCleaning()],
-        [inputs.dryCleaning()],
-        [inputs.otherServices()],
-        [inputs.workComplexity()]
+        [additionals.glazingWashing()],
+        [additionals.industrialAlpinism()],
+        [additionals.rotaryCleaning()],
+        [additionals.dryCleaning()],
+        [additionals.otherServices()],
+        [additionals.workComplexity()]
     ]
 }
 //*********************************************
 
 //KP
 //*********************************************
-export const KP_PRIMARY_INFORMATION = ({counterparty, source, createdAt}) => {
+export const KP_PRIMARY_INFORMATION = ({ counterparty, source, createdAt }) => {
     return {
-        title: 'Первичная информация',
-        name: 'primaryInformation',
+        title: "Первичная информация",
+        name: "primaryInformation",
         inputs: [
-            createdAt ? [inputs.division(true), inputs.responsibleManager(true), inputs.createdAt(true)] : [inputs.division(true), inputs.responsibleManager(true)],
-            [inputs.cleaningType(), inputs.orderType()],
-            [inputs.buildingType(), inputs.buildingClass()],
-            counterparty === "Физ. лицо" ? [inputs.counterparty(), inputs.sex()] : [inputs.counterparty(), inputs.organization()],
-            [inputs.clientFullname(), inputs.clientPhone()],
-            [inputs.address()],
-            [inputs.serviceType(), inputs.additionalService()],
-            [inputs.cleaningDuration(), inputs.cost(), inputs.paymentType()],
-            (source === "от Партнеров" || source === "Рекомендации" || source === "Абонемент" || source === "Рамочный договор" || source === "Объект из ППО") ?
-                [inputs.attractionSource(), inputs.sourceTypeText()] : [inputs.attractionSource(), inputs.sourceTypeSelect()],
-            [inputs.priceWithoutDiscount(), inputs.kpDiscount(), inputs.priceWithDiscount()],
-            [inputs.kpCreatedAt(), inputs.kpDateEnd()],
-            [inputs.kpComment()]
+            createdAt
+                ? [
+                      kp_primary.division(true),
+                      kp_primary.responsibleManager(true),
+                      kp_primary.createdAt(true)
+                  ]
+                : [kp_primary.division(true), kp_primary.responsibleManager(true)],
+            [kp_primary.cleaningType(), kp_primary.orderType()],
+            [kp_primary.buildingType(), kp_primary.buildingClass()],
+            counterparty === "Физ. лицо"
+                ? [kp_primary.counterparty(), kp_primary.sex()]
+                : [kp_primary.counterparty(), kp_primary.organization()],
+            [kp_primary.clientFullname(), inputs.clientPhone()],
+            [kp_primary.address()],
+            [kp_primary.serviceType(), kp_primary.additionalService()],
+            [kp_primary.cleaningDuration(), kp_primary.cost(), kp_primary.paymentType()],
+            source === "от Партнеров" ||
+            source === "Рекомендации" ||
+            source === "Абонемент" ||
+            source === "Рамочный договор" ||
+            source === "Объект из ППО"
+                ? [kp_primary.attractionSource(), kp_primary.sourceTypeText()]
+                : [kp_primary.attractionSource(), kp_primary.sourceTypeSelect()],
+            [
+                kp_primary.priceWithoutDiscount(),
+                kp_primary.kpDiscount(),
+                kp_primary.priceWithDiscount()
+            ],
+            [kp_primary.kpCreatedAt(), kp_primary.kpDateEnd()],
+            [kp_primary.kpComment()]
         ]
     }
-};
+}
 //*********************************************
-
 
 //CONTRACT
 //*********************************************
 export const CONTRACT_GENERAL_INFORMATION = () => ({
-    title: 'Общая информация',
-    name: 'contract',
+    title: "Общая информация",
+    name: "contract",
     inputs: [
-        [inputs.contractNumber(), inputs.contractDate(), inputs.cleaningDate(false, false)],
-        [inputs.address()],
-        [inputs.contractCost()],
-        [inputs.serviceType(), inputs.additionalService()],
-        [inputs.contractServices()]
+        [contract.contractNumber(), contract.contractDate(), contract.cleaningDate(false, false)],
+        [contract.address()],
+        [contract.contractCost()],
+        [contract.serviceType(), contract.additionalService()],
+        [contract.contractServices()]
     ]
-});
+})
 //*********************************************
-
 
 //NZ
 //*********************************************
 export const TASK = (stage, user) => {
-    let disabled = false;
+    let disabled = false
     if (user?.roleName !== "CHIEF" && user?.roleName !== "ORDER_MANAGER") {
-        disabled = true;
+        disabled = true
     }
     if (stage === "FILL_NZ_WITH_TASK") {
-        disabled = true;
+        disabled = true
     }
     return {
-        title: 'Задача',
-        name: 'nzTask',
+        title: "Задача",
+        name: "nzTask",
         active: true,
         inputs: [
-            [inputs.serviceType(true), inputs.cleaningDate(true)],
-            [inputs.contactInfo(true)],
-            [inputs.address(true)],
-            [inputs.buildingType(true), inputs.buildingClass(true)],
-            [inputs.responsibleManager(true), inputs.foreman(disabled), inputs.totalCost(true)],
-            [inputs.cleaningTask(disabled)],
-            [inputs.objectArea(true), inputs.durationCleaningTime(disabled), inputs.cleanerNumber(disabled), inputs.employeesSalary(disabled), inputs.consumables(disabled)],
-            [inputs.documentsStatus(disabled)],
-            [inputs.logisticTitle()],
-            [inputs.logisticExpansesTaxiRouteThere(disabled), inputs.logisticExpansesTaxiRouteBack(disabled), inputs.logisticExpansesPetrolRoute(disabled)],
+            [task.serviceType(true), task.cleaningDate(true)],
+            [task.contactInfo(true)],
+            [task.address(true)],
+            [task.buildingType(true), task.buildingClass(true)],
+            [task.responsibleManager(true), task.foreman(disabled), task.totalCost(true)],
+            [task.cleaningTask(disabled)],
+            [
+                task.objectArea(true),
+                task.durationCleaningTime(disabled),
+                task.cleanerNumber(disabled),
+                task.employeesSalary(disabled),
+                task.consumables(disabled)
+            ],
+            [task.documentsStatus(disabled)],
+            [task.logisticTitle()],
+            [
+                task.logisticExpansesTaxiRouteThere(disabled),
+                task.logisticExpansesTaxiRouteBack(disabled),
+                task.logisticExpansesPetrolRoute(disabled)
+            ]
         ]
     }
-};
-
+}
 
 //NZ
 //*********************************************
 export const PERSONNEL = () => {
     return {
-        title: 'Информация о сотруднике',
-        name: 'personnel',
+        title: "Информация о сотруднике",
+        name: "personnel",
         inputs: [
-            [personnelInputs.fullname(false), personnelInputs.birthday(false), personnelInputs.phone(false)],
-            [personnelInputs.division(false), personnelInputs.jobPosition(false), personnelInputs.rank(false)],
+            [
+                personnelInputs.fullname(false),
+                personnelInputs.birthday(false),
+                personnelInputs.phone(false)
+            ],
+            [
+                personnelInputs.division(false),
+                personnelInputs.jobPosition(false),
+                personnelInputs.rank(false)
+            ],
             [personnelInputs.savePersonnelAction(false)]
         ]
     }
-};
+}
