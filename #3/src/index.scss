@@ -1,0 +1,404 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+@import './config/config.scss';
+
+* {
+	margin: 0;
+	box-sizing: border-box;
+	font-family: -apple-system, BlinkMacSystemFont, 'ProximaNova', 'Segoe UI',
+		'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+		'Helvetica Neue', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+html {
+	font-size: 16px;
+
+	@media screen and (max-width: 1200px) {
+		font-size: 15px;
+	}
+	@media screen and (max-width: 900px) {
+		font-size: 14px;
+	}
+	@media screen and (max-width: 700px) {
+		font-size: 13px;
+	}
+	@media screen and (max-width: 500px) {
+		font-size: 11px;
+	}
+	@media screen and (max-width: 400px) {
+		font-size: 10px;
+	}
+	@media screen and (max-width: 300px) {
+		font-size: 9px;
+	}
+	@media screen and (max-width: 200px) {
+		font-size: 8px;
+	}
+}
+
+#root {
+	//overflow-y: visible;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+code {
+	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+		monospace;
+}
+
+a {
+	cursor: pointer;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+	border: none;
+	outline: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+option,
+select {
+	-moz-user-select: none;
+	user-select: none;
+}
+
+abbr[title] {
+	text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+	cursor: default;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+h2 {
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: $textSecond;
+}
+
+h3 {
+	font-size: 1.1rem;
+	font-weight: 500;
+	color: $textSecond;
+}
+
+h4 {
+	font-size: 1rem;
+	font-weight: 400;
+	color: $textSecond;
+}
+
+h5 {
+	font-size: 0.9rem;
+	font-weight: 400;
+	color: $textSecond;
+
+	&.error {
+		color: $errorMedium;
+	}
+}
+
+embed {
+	background-color: #fff;
+	height: 100%;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch !important;
+}
+
+input::placeholder {
+	color: $textFourth !important;
+}
+
+input:disabled,
+textarea:disabled {
+	-webkit-text-fill-color: $textDisabled;
+	-webkit-opacity: 1;
+	cursor: initial;
+	color: $textDisabled !important;
+	opacity: 1;
+}
+
+.popupWrapper {
+	cursor: initial;
+	position: fixed;
+	backdrop-filter: blur(6px);
+	background-color: rgba(0, 0, 0, 0.3);
+	z-index: 50;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	&_black {
+		background-color: rgba(0, 0, 0, 0.7);
+	}
+}
+
+.fixedWrapper {
+	cursor: initial;
+	position: fixed;
+	z-index: 49;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+
+	&.withSidebar {
+		z-index: 25;
+	}
+}
+
+.button {
+	color: $backMain;
+	padding: 0.75em 1.5em;
+	width: 100%;
+	border-radius: 100px;
+	background-color: $turquoise;
+	font-size: 1.05rem;
+	font-weight: 500;
+	transition: box-shadow 0.2s ease-out, background-color 0.2s ease-out;
+
+	&:hover:not(:disabled) {
+		background-color: $darkTurquoise;
+	}
+
+	&:disabled {
+		background-color: $turquoise25;
+	}
+
+	&_fill-none {
+		background-color: $backMain;
+		border: 2px solid $turquoise;
+		box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+		color: $turquoise;
+
+		&:hover:not(:disabled) {
+			background-color: $backSecond;
+			box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+		}
+
+		&:disabled {
+			background-color: rgba(255, 255, 255, 0.5);
+			border: 2px solid $turquoise25;
+			color: $lightTurquoise;
+			box-shadow: 0 5px 25px -10px rgba(0, 0, 0, 0.1);
+		}
+	}
+
+	@mixin borderNoneButton($color) {
+		border: none;
+		background-color: $backMain;
+		box-shadow: 0 4px 18px transparentize($color, 0.6);
+		color: $color;
+
+		&:hover:not(:disabled) {
+			box-shadow: 0 4px 18px transparentize($color, 0.4);
+			background-color: $backMain;
+		}
+
+		&.selected {
+			box-shadow: 0 4px 18px transparentize($color, 0.4);
+			background-color: $backMain;
+		}
+
+		&:disabled {
+			box-shadow: 0 4px 12px transparentize($color, 0.85);
+			color: lighten($color, 0.4);
+			background-color: rgba(255, 255, 255, 0.5);
+		}
+	}
+
+	&_border-none {
+		@include borderNoneButton($turquoise);
+		&.darkGreen {
+			@include borderNoneButton($darkGreen);
+		}
+		&.lightGreen {
+			@include borderNoneButton($lightGreen);
+		}
+		&.yellow {
+			@include borderNoneButton($yellow);
+		}
+		&.orange {
+			@include borderNoneButton($orange);
+		}
+		&.red {
+			@include borderNoneButton($red);
+		}
+	}
+
+	&_bc-grey {
+		border: none;
+		box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.15);
+		background-color: $backSecond;
+		color: $turquoise;
+
+		&:hover:not(:disabled) {
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+			background-color: $backSecond;
+		}
+
+		&:disabled {
+			box-shadow: none;
+			background-color: $backSecond;
+			color: $textFifth;
+		}
+	}
+
+	&_error {
+		background-color: $errorMedium;
+		color: $backMain;
+
+		&:hover:not(:disabled) {
+			background-color: $error;
+		}
+
+		&.disabled {
+			background-color: $errorUltraLight;
+		}
+	}
+}
+
+*:disabled,
+*.disabled {
+	cursor: initial !important;
+}
+
+::-webkit-scrollbar {
+	width: 5px;
+	height: 0.4em;
+
+	@media all and (max-width: 700px) {
+		width: 4px;
+	}
+	@media all and (max-width: 300px) {
+		width: 3px;
+	}
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+	background: $textFifth;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: $textFourth;
+}
+
+.td30 {
+	width: 30%;
+}
+
+.td20 {
+	width: 20%;
+}
+
+.button_main {
+}
+
+.bc-documents {
+	background-color: $selling20 !important;
+}
+
+.bc-cleaning {
+	background-color: $cleaning20 !important;
+}
+
+.bc-re_cleaning {
+	background-color: $re_cleaning20 !important;
+}
+
+.bc-inspectionAndAccounting {
+	background-color: $inspection20 !important;
+}
+
+.bc-quality {
+	background-color: $quality20 !important;
+}
+
+.bc-expanses {
+	background-color: $reports20 !important;
+}
+
+[data-tooltip]::after {
+	position: absolute;
+	content: attr(data-tooltip);
+	text-align: left;
+	font-size: 0.9em;
+	white-space: pre-line;
+	left: 0;
+	width: max-content;
+	max-width: 100%;
+	right: 0;
+	bottom: 60%;
+	background-color: white;
+	backdrop-filter: blur(12px);
+	color: #6d7986;
+	padding: 0.5em 0.75em;
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+	pointer-events: none;
+	opacity: 0;
+	transition: 0.75s;
+	z-index: 200;
+	border-radius: 1em;
+	-webkit-overflow-scrolling: auto !important;
+	-webkit-backdrop-filter: blur(12px);
+}
+[data-tooltip]:hover::after {
+	opacity: 1;
+	bottom: 110%;
+}
+
+@font-face {
+	font-family: 'ProximaNova';
+	src: url('fonts/ProximaNovaLight/ProximaNovaLight.ttf') format('truetype');
+	font-style: normal;
+	font-weight: 300;
+}
+
+@font-face {
+	font-family: 'ProximaNova';
+	src: url('fonts/ProximaNovaRegular/ProximaNovaRegular.ttf') format('truetype');
+	font-style: normal;
+	font-weight: 400;
+}
+
+@font-face {
+	font-family: 'ProximaNova';
+	src: url('fonts/ProximaNovaSemibold/ProximaNovaSemibold.ttf')
+		format('truetype');
+	font-style: normal;
+	font-weight: 500;
+}
+
+@font-face {
+	font-family: 'ProximaNova';
+	src: url('fonts/ProximaNovaBold/ProximaNovaBold.ttf') format('truetype');
+	font-style: normal;
+	font-weight: 600;
+}
+
+@font-face {
+	font-family: 'ProximaNova';
+	src: url('fonts/ProximaNovaExtraBold/ProximaNovaExtraBold.ttf')
+		format('truetype');
+	font-style: normal;
+	font-weight: 700;
+}
