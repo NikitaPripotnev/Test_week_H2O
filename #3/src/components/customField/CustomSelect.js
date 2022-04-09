@@ -17,8 +17,7 @@ const CustomSelect = ({
 	error,
 	disabled,
 	placeholder,
-	groups,
-	group,
+	items,
 }) => {
 	// const dispatch = useDispatch()
 	const [parameters, setParameters] = useState({
@@ -29,6 +28,20 @@ const CustomSelect = ({
 	})
 
 	const parent = useRef(null)
+
+	// Сразу узнаю всё про группы, если что-то есть, возвращаю массив с количеством итемов в каждом объекте, которые передаются
+	const group = items[0].values
+		? items.map(item => {
+				item = [item.header, ...item.values]
+				item = item.length
+				return item
+		  })
+		: false
+
+	// Здесь использую группы, чтобы узнать сколько в сумме у нас итемов
+	const itemsLength = group
+		? group.reduce((sum, cur) => sum + cur, 0)
+		: items.length
 
 	const handleClick = value => {
 		hideOptions()
@@ -56,7 +69,8 @@ const CustomSelect = ({
 				.getComputedStyle(document.documentElement, null)
 				.getPropertyValue('font-size')
 		)
-		const listHeight = Math.min(groups[0].items.length * 2.8 + 0.8, 16.25)
+
+		const listHeight = Math.min(itemsLength * 2.6 + 0.8, 16.25)
 
 		if (documentHeight - coord.bottom > listHeight * fontSize) {
 			setParameters({
@@ -106,8 +120,8 @@ const CustomSelect = ({
 				{value !== undefined &&
 				value !== null &&
 				value !== '' &&
-				groups.items.some(item => item.value === value) ? (
-					<span>{groups.items.find(item => item.value === value).text}</span>
+				items.some(item => item.value === value) ? (
+					<span>{items.find(item => item.value === value).text}</span>
 				) : value === undefined || value === null || value === '' ? (
 					<span className={'customField__placeholder'}>
 						{placeholder !== null && placeholder !== undefined
@@ -135,12 +149,10 @@ const CustomSelect = ({
 							height: parameters.height + 'rem',
 						}}
 					>
-						{groups === false ? (
-							<Items name={name} items={groups} handleClick={handleClick} />
+						{group ? (
+							<Groups name={name} items={items} handleClick={handleClick} />
 						) : (
-							groups.length > 0 && (
-								<Groups name={name} groups={groups} handleClick={handleClick} />
-							)
+							<Items name={name} items={items} handleClick={handleClick} />
 						)}
 					</ul>
 				</div>

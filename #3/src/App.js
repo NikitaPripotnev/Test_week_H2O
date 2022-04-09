@@ -4,29 +4,29 @@ function App() {
 	return (
 		<div className='App' key='app'>
 			<CustomSelect
-				key='123'
+				key='app'
 				title='Пропускной режим'
 				name='permitRegime'
 				className='input100'
 				type='select'
-				groups={[
+				items={[
 					{
-						name: 'Заголовок 1',
-						items: [
+						header: 'Заголовок',
+						values: [
 							{ value: 'Небольшое', text: 'Небольшое' },
 							{ value: 'Среднее', text: 'Среднее' },
 							{ value: 'Сильное', text: 'Сильное' },
 						],
 					},
 					{
-						items: [
+						header: 'Заголовок',
+						values: [
 							{ value: 'Небольшое', text: 'Небольшое' },
 							{ value: 'Среднее', text: 'Среднее' },
 							{ value: 'Сильное', text: 'Сильное' },
 						],
 					},
 				]}
-				group={false}
 			/>
 		</div>
 	)

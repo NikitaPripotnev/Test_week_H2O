@@ -1,22 +1,22 @@
-const Groups = ({ name, groups, handleClick }) => {
-	return groups?.map(group => {
-		const itemsHeader = (
-			<div key={group.name} className='customField__itemsHeader'>
-				<div className='groupName'>{group.name}</div>
+const Groups = ({ name, items, handleClick }) => {
+	return items.map(item => {
+		const groupHeader = (
+			<div key={item.header} className='customField__itemsHeader'>
+				<div className='groupName'>{item.header}</div>
 			</div>
 		)
-		const item = group.items?.map((option, index) => (
+		const group = item.values?.map((value, index) => (
 			<li
-				onClick={e => handleClick(option.value)}
+				onClick={e => handleClick(value.value)}
 				key={name + '_option_' + index}
 			>
-				{option.text}
+				{value.text}
 			</li>
 		))
 		return (
 			<>
-				{itemsHeader}
-				{item}
+				{groupHeader}
+				{group}
 			</>
 		)
 	})

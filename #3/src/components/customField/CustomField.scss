@@ -1,15 +1,11 @@
 @import '../../config/config.scss';
-body {
-	margin-left: 20px;
-}
+
 .customField {
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	justify-content: left;
 	text-align: left;
-	width: 250px;
-	height: 150px;
 
 	& > span,
 	& > h5 {
@@ -158,6 +154,13 @@ body {
 		}
 	}
 
+	&__itemsHeader {
+		color: $textSecond;
+		font-weight: 600;
+		font-size: 1.2rem;
+		margin-left: 10px;
+	}
+
 	&__placeholder {
 		color: $textFourth !important;
 	}
@@ -202,15 +205,5 @@ body {
 		height: 100%;
 		top: 0;
 		left: 0;
-	}
-}
-.customField__itemsHeader {
-	color: $textSecond;
-	font-size: medium;
-	border-radius: 5px;
-
-	& > div {
-		font-weight: 600;
-		margin-left: 10px;
 	}
 }
