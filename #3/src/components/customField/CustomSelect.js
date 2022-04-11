@@ -30,18 +30,31 @@ const CustomSelect = ({
 	const parent = useRef(null)
 
 	// Сразу узнаю всё про группы, если что-то есть, возвращаю массив с количеством итемов в каждом объекте, которые передаются
-	const group = items[0].values
-		? items.map(item => {
-				item = [item.header, ...item.values]
-				item = item.length
-				return item
-		  })
-		: false
+	// const group = items[0].values
+	// 	? items.map(item => {
+	// 			item = [item.header, ...item.values]
+	// 			item = item.length
+	// 			return item
+	// 	  })
+	// 	: false
 
-	// Здесь использую группы, чтобы узнать сколько в сумме у нас итемов
-	const itemsLength = group
-		? group.reduce((sum, cur) => sum + cur, 0)
-		: items.length
+	// // Здесь использую группы, чтобы узнать сколько в сумме у нас итемов
+	// const itemsLength = group
+	// 	? group.reduce((sum, cur) => sum + cur, 0)
+	// 	: items.length
+
+	const group = items[0].values ? true : false
+	const [listHeight, setListHeight] = useState(0)
+
+	useLayoutEffect(() => {
+		const itemsLenght = group
+			? items.map(item => item.values.length + 1)
+			: items.length
+		const itemsLength = group
+			? itemsLenght.reduce((sum, cur) => sum + cur, 0)
+			: itemsLenght
+		setListHeight(Math.min(itemsLength * 2.6 + 0.8, 16.25))
+	}, [parent.current])
 
 	const handleClick = value => {
 		hideOptions()
@@ -69,8 +82,6 @@ const CustomSelect = ({
 				.getComputedStyle(document.documentElement, null)
 				.getPropertyValue('font-size')
 		)
-
-		const listHeight = Math.min(itemsLength * 2.6 + 0.8, 16.25)
 
 		if (documentHeight - coord.bottom > listHeight * fontSize) {
 			setParameters({
