@@ -1,69 +1,70 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import './CustomField.scss'
 import { ExpandMore } from '@mui/icons-material'
-// import { useDispatch } from 'react-redux'
-// import { SET_BODY_HIDDEN } from '../redux/appSlice'
 import _ from 'lodash'
 import clsx from 'clsx'
-import Groups from './Groups'
-import Items from './Items'
+
+const Items = ({ name, items, handleClick }) => {
+	return items?.map((option, index) => (
+		<li
+			onClick={e => handleClick(option.value)}
+			key={name + '_option_' + index}
+		>
+			{option.text}
+		</li>
+	))
+}
+
+const Groups = ({ name, items, handleClick }) => {
+	return items.map(item => {
+		const groupHeader = (
+			<div key={item.header} className='customField__itemsHeader'>
+				<div key={item.header} className='groupName'>
+					{item.header}
+				</div>
+			</div>
+		)
+		const group = item.values?.map((value, index) => (
+			<li
+				key={name + '_option_' + index}
+				onClick={e => handleClick(value.value)}
+			>
+				{value.text}
+			</li>
+		))
+		return (
+			<>
+				{groupHeader}
+				{group}
+			</>
+		)
+	})
+}
 
 const CustomSelect = ({
 	title,
 	name,
 	value,
 	className,
-	onChange,
 	error,
 	disabled,
 	placeholder,
 	items,
 }) => {
-	// const dispatch = useDispatch()
+	const parent = useRef(null)
+	const popupRef = useRef(null)
+	const [active, setActive] = useState(false)
 	const [parameters, setParameters] = useState({
-		active: false,
 		top: 0,
 		left: 0,
 		width: 0,
 	})
 
-	const parent = useRef(null)
-
-	// Сразу узнаю всё про группы, если что-то есть, возвращаю массив с количеством итемов в каждом объекте, которые передаются
-	// const group = items[0].values
-	// 	? items.map(item => {
-	// 			item = [item.header, ...item.values]
-	// 			item = item.length
-	// 			return item
-	// 	  })
-	// 	: false
-
-	// // Здесь использую группы, чтобы узнать сколько в сумме у нас итемов
-	// const itemsLength = group
-	// 	? group.reduce((sum, cur) => sum + cur, 0)
-	// 	: items.length
-
-	const group = items[0].values ? true : false
-	const [listHeight, setListHeight] = useState(0)
-
-	useLayoutEffect(() => {
-		const itemsLenght = group
-			? items.map(item => item.values.length + 1)
-			: items.length
-		const itemsLength = group
-			? itemsLenght.reduce((sum, cur) => sum + cur, 0)
-			: itemsLenght
-		setListHeight(Math.min(itemsLength * 2.6 + 0.8, 16.25))
-	}, [parent.current])
-
-	const handleClick = value => {
-		hideOptions()
-		onChange && onChange(value)
-	}
+	const [popupHeight, setPopupHeight] = useState(0)
 
 	const handleResize = () => {
 		if (parent.current) {
-			showOptions()
+			setActive(true)
 		}
 	}
 
@@ -71,55 +72,48 @@ const CustomSelect = ({
 
 	const hideOptions = () => {
 		parent.current = null
-		// dispatch(SET_BODY_HIDDEN(false))
-		setParameters({ active: false, top: 0, left: 0, width: 0 })
+		setParameters({ top: 0, left: 0, width: 0 })
 	}
 	const showOptions = () => {
 		const coord = parent.current.getBoundingClientRect()
 		const documentHeight = document.documentElement.clientHeight
-		const fontSize = parseFloat(
-			window
-				.getComputedStyle(document.documentElement, null)
-				.getPropertyValue('font-size')
-		)
-
-		if (documentHeight - coord.bottom > listHeight * fontSize) {
+		if (documentHeight - coord.bottom > popupHeight) {
 			setParameters({
-				active: true,
 				top: coord.bottom,
 				bottom: 'auto',
-				left: coord.left,
 				width: coord.width,
-				height: listHeight,
+				left: coord.left,
 			})
 		} else {
 			setParameters({
-				active: true,
-				bottom: 5,
 				top: 'auto',
-				left: coord.left,
+				bottom: 5,
 				width: coord.width,
-				height: listHeight,
+				left: coord.left,
 			})
 		}
 	}
 
 	const onClick = e => {
 		if (!disabled) {
-			if (!parameters.active) {
-				// dispatch(SET_BODY_HIDDEN(true))
+			if (!active) {
 				parent.current = e.target.closest('div')
+				setActive(true)
 				showOptions()
 			} else {
+				setActive(false)
 				hideOptions()
 			}
 		}
 	}
 
+	useLayoutEffect(() => {
+		setPopupHeight(popupRef?.current?.clientHeight)
+	}, [active])
+
 	useEffect(() => {
 		window.addEventListener('resize', throttleResize)
 		return () => {
-			// dispatch(SET_BODY_HIDDEN(false))
 			window.removeEventListener('resize', throttleResize)
 		}
 	}, [])
@@ -143,27 +137,23 @@ const CustomSelect = ({
 					<span>{value}</span>
 				)}
 				<ExpandMore
-					className={`customField__expand ${parameters.active ? 'active' : ''}`}
+					className={clsx(`customField__expand`, className, { active })}
 				/>
 			</div>
-			{parameters.active && (
+			{active && (
 				<div>
-					<div className='fixedWrapper' onClick={hideOptions} />
+					<div className='fixedWrapper' onClick={onClick} />
 					<ul
+						ref={popupRef}
 						className='customField__optionList'
 						style={{
-							position: 'fixed',
-							bottom: parameters.bottom,
-							top: parameters.top,
-							left: parameters.left,
-							width: parameters.width,
-							height: parameters.height + 'rem',
+							...parameters,
 						}}
 					>
-						{group ? (
-							<Groups name={name} items={items} handleClick={handleClick} />
+						{items[0].values ? (
+							<Groups name={name} items={items} handleClick={onClick} />
 						) : (
-							<Items name={name} items={items} handleClick={handleClick} />
+							<Items name={name} items={items} handleClick={onClick} />
 						)}
 					</ul>
 				</div>
